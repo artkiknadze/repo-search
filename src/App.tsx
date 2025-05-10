@@ -1,12 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import "./App.css";
 
+type Repository = {
+  id: number;
+  full_name: string;
+  description: string;
+  html_url: string;
+  stargazers_count: number;
+  forks_count: number;
+};
+
 function App() {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [query, setQuery] = useState<string>("");
+  const [results, setResults] = useState<Repository[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -28,8 +36,12 @@ function App() {
 
       const data = await response.json();
       setResults(data.items);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
     } finally {
       setLoading(false);
     }
@@ -48,7 +60,11 @@ function App() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <button className="border rounded-lg p-2 bg-black text-white" onClick={handleSearch} disabled={loading}>
+        <button
+          className="border rounded-lg p-2 bg-black text-white"
+          onClick={handleSearch}
+          disabled={loading}
+        >
           {loading ? "Searching..." : "Search"}
         </button>
       </div>
@@ -56,11 +72,8 @@ function App() {
       {error && <p className="text-red-500">Error: {error}</p>}
 
       <div className="grid gap-4">
-        {results.map((repo: any) => (
-          <div
-            key={repo.id}
-            className="border rounded-lg p-4 bg-white"
-          >
+        {results.map((repo: Repository) => (
+          <div key={repo.id} className="border rounded-lg p-4 bg-white">
             <a
               href={repo.html_url}
               target="_blank"
